@@ -5,7 +5,7 @@ Phone similarity based on PHOIBLE allophone data.
 ## Interpretation
 
 Each row in `simphones.csv` contains a pair of phones and a similarity score.
-To save space, not every pair of phones is assigned a score.
+To save space, not every pair of phones has an entry in the dataset.
 
 - `0 <= similarity (A, B) <= 1` (higher score means more similar)
 - `similarity(A, B) = similarity(B, A)`
