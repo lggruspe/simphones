@@ -52,6 +52,8 @@ python -m simphones <output file>
 
 ## Licenses
 
+Copyright 2023 Levi Gruspe
+
 The scripts in this repository are licensed under [GPLv3 or later](./LICENSES/GNU_GPLv3.txt).
 
 `simphones.csv`, which is a derivative work of [PHOIBLE 2.0](https://phoible.org/), is released under a [Creative Commons Attribution-ShareAlike 3.0 Unported License](./LICENSES/CC_BY-SA_3.0.txt).
