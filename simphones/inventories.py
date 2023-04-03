@@ -85,4 +85,21 @@ def update_inventory(
         inventory[phone].add(allophone)
 
 
+def all_phones(language: LanguageCode = "*") -> set[Phone]:
+    """Return set of all phones in the PHOIBLE data."""
+    inventories = get_phonological_inventories()
+    inventory = inventories.get(language, {})
+    return set(inventory.keys())
+
+
+def main() -> None:
+    """Script entrypoint."""
+    for phone in all_phones():
+        print(phone)
+
+
+if __name__ == "__main__":
+    main()
+
+
 __all__ = ["get_phonological_inventories"]
