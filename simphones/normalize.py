@@ -57,21 +57,21 @@ modifiers = {
 
     # Spacing modifier letters
     "\u02de": 31,   # rhotic hook
-    "\u207f": 32,   # nasal release
-    "\u02e1": 33,   # lateral release
-    "\u02b7": 34,   # labialized: u1ac7 (?) u032b (?)
-    "\u02b2": 35,   # palatalized
-    "\u1da3": 36,   # labial-palatalized
-    "\u02e0": 37,   # velarized
-    "\u02e4": 38,   # pharyngealized
-    "\u02c0": 39,   # glottalized
-    "\u1d4a": 40,   # schwa-like release
-    "\u1d31": 41,   # epilaryngeal source
-    "\u02b0": 42,   # aspirated
-    "\u02b1": 43,   # breathy aspirated
-    "\u02bc": 44,   # ejective
-    "\u02d0": 45,   # long
-    "\u02d1": 46,   # half long
+    "\u207f": 31,   # nasal release
+    "\u02e1": 31,   # lateral release
+    "\u02b7": 31,   # labialized: u1ac7 (?) u032b (?)
+    "\u02b2": 31,   # palatalized
+    "\u1da3": 31,   # labial-palatalized
+    "\u02e0": 31,   # velarized
+    "\u02e4": 31,   # pharyngealized
+    "\u02c0": 31,   # glottalized
+    "\u1d4a": 31,   # schwa-like release
+    "\u1d31": 31,   # epilaryngeal source
+    "\u02b0": 31,   # aspirated
+    "\u02b1": 31,   # breathy aspirated
+    "\u02bc": 31,   # ejective
+    "\u02d0": 31,   # long
+    "\u02d1": 31,   # half long
 }
 
 

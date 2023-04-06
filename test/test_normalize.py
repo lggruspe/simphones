@@ -30,3 +30,14 @@ def test_normalize_ipa_sort_order() -> None:
     order = [modifiers[symbol] for symbol in symbols]
     for i in range(1, len(order)):
         assert order[i-1] <= order[i]
+
+
+def test_modifier_letters() -> None:
+    # "Sndaaꞌ" from San Pedro Amuzgos Amuzgo language (azg)
+    """Modifier letters shouldn't be reordered."""
+    example = "ˈsˠⁿdˠáʔ"
+    expected = "ˈsˠⁿdˠa\u0301ʔ"
+
+    # ⁿ actually modifies d instead of s.
+    # Reordering may cause ⁿ to also modify d.
+    assert normalize_ipa(example) == expected
