@@ -33,8 +33,14 @@ def get_phonological_inventories() -> InventoryDataset:
 
         for row in rows:
             code = row[2]
-            phoneme = normalize_ipa(row[6])
             allophones = parse_allophones(row[7])
+
+            raw_phoneme = row[6]
+            if "|" in raw_phoneme:
+                # Consider piped segments as allophones.
+                raw_phoneme, *rest = raw_phoneme.split("|")
+                allophones.update(parse_allophones(" ".join(rest)))
+            phoneme = normalize_ipa(raw_phoneme)
 
             # Update combined inventory.
             combined_inventory = inventories.setdefault("*", {})
@@ -56,7 +62,7 @@ def parse_allophones(text: str) -> set[Phone]:
     if text in ("", "NA"):
         return set()
 
-    allophones = set()
+    allophones: set[Phone] = set()
     for allophone in text.split():
         if (
             "<" in allophone or ">" in allophone or "⟨" in allophone
@@ -64,7 +70,10 @@ def parse_allophones(text: str) -> set[Phone]:
         ):
             # Angled brackets contain graphemes, not phonemes.
             continue
-        allophones.add(normalize_ipa(allophone))
+
+        # Some PHOIBLE segments have a vertical line, e.g. [t̪|t].
+        # We split those into smaller segments.
+        allophones.update(map(normalize_ipa, allophone.split("|")))
     return allophones
 
 
