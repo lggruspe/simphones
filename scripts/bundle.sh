@@ -2,7 +2,7 @@
 
 # Bundle CSV, README and LICENSE files.
 
-version="0.1.1"
+version="0.1.2"
 ra="$(pwd)"
 temp="$(mktemp -d)"
 path="$temp/simphones-$version"
