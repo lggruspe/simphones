@@ -18,6 +18,10 @@ LanguageCode: t.TypeAlias = str
 InventoryDataset: t.TypeAlias = dict[LanguageCode, Inventory]
 
 
+COMBINING_RING_ABOVE = "\u030a"     # like in å
+COMBINING_RING_BELOW = "\u0325"     # like in ḁ
+
+
 def get_phonological_inventories() -> InventoryDataset:
     """Get phonological inventories from the PHOIBLE dataset.
 
@@ -35,7 +39,10 @@ def get_phonological_inventories() -> InventoryDataset:
             code = row[2]
             allophones = parse_allophones(row[7])
 
-            raw_phoneme = row[6]
+            raw_phoneme = row[6].replace(
+                COMBINING_RING_ABOVE,
+                COMBINING_RING_BELOW,
+            )
             if "|" in raw_phoneme:
                 # Consider piped segments as allophones.
                 raw_phoneme, *rest = raw_phoneme.split("|")
@@ -61,6 +68,8 @@ def parse_allophones(text: str) -> set[Phone]:
     """
     if text in ("", "NA"):
         return set()
+
+    text = text.replace(COMBINING_RING_ABOVE, COMBINING_RING_BELOW)
 
     allophones: set[Phone] = set()
     for allophone in text.split():
