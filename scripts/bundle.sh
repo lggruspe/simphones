@@ -2,7 +2,13 @@
 
 # Bundle CSV, README and LICENSE files.
 
-version="0.1.2"
+version="$1"
+
+if [ "$version" == "" ]; then
+	echo "missing version number"
+	exit 1
+fi
+
 ra="$(pwd)"
 temp="$(mktemp -d)"
 path="$temp/simphones-$version"
