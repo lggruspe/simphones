@@ -139,11 +139,7 @@ def main(_: Namespace) -> None:
             continue
 
         assert "," not in code
-
-        line = code
-        for sound in sorted(inventory.keys()):
-            assert "," not in sound
-            line += f",{sound}"
+        line = code + "," + " ".join(sorted(inventory.keys()))
         print(line)
 
 

@@ -2,9 +2,14 @@
 # Licensed under GNU GPLv3 or later
 # See https://www.gnu.org/licenses/gpl-3.0.en.html
 """Test simphones.inventories."""
+from argparse import Namespace
+
+import pytest
+
 from simphones.inventories import (
     get_phonological_inventories,
     get_sounds,
+    main,
     parse_allophones,
 )
 
@@ -86,3 +91,13 @@ def test_no_invalid_segments_in_inventory(invalid_segments: list[str]) -> None:
     inventory = set(get_phonological_inventories()["*"].keys())
     for segment in invalid_segments:
         assert segment not in inventory
+
+
+def test_main(capsys: pytest.CaptureFixture[str]) -> None:
+    """Output should be a CSV file with two columns."""
+    main(Namespace())
+
+    stdout, _ = capsys.readouterr()
+    for line in stdout.splitlines():
+        row = line.split(",")
+        assert len(row) == 2
