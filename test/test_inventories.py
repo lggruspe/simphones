@@ -60,3 +60,10 @@ def test_diacritics() -> None:
     combining_double_breve_below = "\u035c"
     assert combining_double_inverted_breve not in symbols
     assert combining_double_breve_below not in symbols
+
+
+def test_no_invalid_segments_in_inventory(invalid_segments: list[str]) -> None:
+    """There should be no invalid segments in the inventory (e.g. `tʂ`)."""
+    inventory = set(get_phonological_inventories()["*"].keys())
+    for segment in invalid_segments:
+        assert segment not in inventory

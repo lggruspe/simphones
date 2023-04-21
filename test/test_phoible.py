@@ -7,10 +7,9 @@ from csv import reader
 from pathlib import Path
 
 
-def test_each_phoneme_has_unique_feature_vector() -> None:
+def test_each_phoneme_has_unique_feature_vector(phoible: Path) -> None:
     """Each phoneme should have only one feature vector."""
     phonemes: dict[str, set[tuple[str, ...]]] = {}
-    phoible = Path(__file__).parent.parent/"simphones"/"phoible.csv"
     with open(phoible, encoding="utf-8") as file:
         rows = reader(file)
         next(rows)
@@ -29,12 +28,11 @@ def diff(first: tuple[str, ...], second: tuple[str, ...]) -> list[int]:
     return [i for i, (a, b) in enumerate(zip(first, second)) if a != b]
 
 
-def test_segments_with_pipe() -> None:
+def test_segments_with_pipe(phoible: Path) -> None:
     """If A|B is a segment, then the feature vectors of A, B and A|B should not
     be too different.
     """
     phonemes = {}
-    phoible = Path(__file__).parent.parent/"simphones"/"phoible.csv"
     with open(phoible, encoding="utf-8") as file:
         rows = reader(file)
         next(rows)
@@ -67,3 +65,23 @@ def test_segments_with_pipe() -> None:
                 # 17 to 19 (coronal, anterior or distributed).
                 for feature in difference:
                     assert 17 <= feature <= 19
+
+
+def test_there_are_invalid_segments(
+    phoible: Path,
+    invalid_segments: list[str],
+) -> None:
+    """PHOIBLE has some invalid segments.
+
+    Future updates to PHOIBLE may make this test obsolete.
+    """
+    assert invalid_segments
+
+    not_found = set(invalid_segments)
+    lines = phoible.read_text(encoding="utf-8").splitlines()
+
+    for line in lines:
+        found = {segment for segment in invalid_segments if segment in line}
+        not_found.difference_update(found)
+
+    assert not not_found

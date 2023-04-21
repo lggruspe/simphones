@@ -22,6 +22,19 @@ COMBINING_RING_ABOVE = "\u030a"     # like in å
 COMBINING_RING_BELOW = "\u0325"     # like in ḁ
 
 
+def substitute(phone: Phone) -> Phone:
+    """Substitute some invalid glyphs inside phone segments."""
+    substitutions = {
+        "tʂ": "ʈʂ",
+        "tʂʼ": "ʈʂʼ",
+        "tʃː": "t̠ʃː",
+        COMBINING_RING_ABOVE: COMBINING_RING_BELOW,
+    }
+    for key, value in substitutions.items():
+        phone = phone.replace(key, value)
+    return phone
+
+
 def get_phonological_inventories() -> InventoryDataset:
     """Get phonological inventories from the PHOIBLE dataset.
 
@@ -37,12 +50,9 @@ def get_phonological_inventories() -> InventoryDataset:
 
         for row in rows:
             code = row[2]
+            raw_phoneme = substitute(row[6])
             allophones = parse_allophones(row[7])
 
-            raw_phoneme = row[6].replace(
-                COMBINING_RING_ABOVE,
-                COMBINING_RING_BELOW,
-            )
             if "|" in raw_phoneme:
                 # Consider piped segments as allophones.
                 raw_phoneme, *rest = raw_phoneme.split("|")
@@ -83,7 +93,7 @@ def parse_allophones(text: str) -> set[Phone]:
         # Some PHOIBLE segments have a vertical line, e.g. [t̪|t].
         # We split those into smaller segments.
         allophones.update(map(normalize_ipa, allophone.split("|")))
-    return allophones
+    return set(map(substitute, allophones))
 
 
 def update_inventory(
