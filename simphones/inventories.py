@@ -64,8 +64,7 @@ def get_phonological_inventories() -> InventoryDataset:
             update_inventory(combined_inventory, phoneme, allophones)
 
             # Update language inventory.
-            assert code != ""
-            if code not in ("NA", "mis"):
+            if code != "NA":
                 language_inventory = inventories.setdefault(code, {})
                 update_inventory(language_inventory, phoneme, allophones)
     return inventories

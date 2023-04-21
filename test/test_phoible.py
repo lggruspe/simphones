@@ -3,20 +3,23 @@
 # See https://www.gnu.org/licenses/gpl-3.0.en.html
 """Test PHOIBLE assertions."""
 
-from csv import reader
 from pathlib import Path
+import re
+import typing as t
 
 
-def test_each_phoneme_has_unique_feature_vector(phoible: Path) -> None:
+Row: t.TypeAlias = tuple[str, ...]
+
+
+def test_each_phoneme_has_unique_feature_vector(
+    phoible_rows: list[Row],
+) -> None:
     """Each phoneme should have only one feature vector."""
     phonemes: dict[str, set[tuple[str, ...]]] = {}
-    with open(phoible, encoding="utf-8") as file:
-        rows = reader(file)
-        next(rows)
-        for row in rows:
-            phoneme = row[6]
-            features = row[11:]
-            phonemes.setdefault(phoneme, set()).add(tuple(features))
+    for row in phoible_rows:
+        phoneme = row[6]
+        features = row[11:]
+        phonemes.setdefault(phoneme, set()).add(tuple(features))
 
     for vectors in phonemes.values():
         assert len(vectors) == 1
@@ -28,17 +31,14 @@ def diff(first: tuple[str, ...], second: tuple[str, ...]) -> list[int]:
     return [i for i, (a, b) in enumerate(zip(first, second)) if a != b]
 
 
-def test_segments_with_pipe(phoible: Path) -> None:
+def test_segments_with_pipe(phoible_rows: list[Row]) -> None:
     """If A|B is a segment, then the feature vectors of A, B and A|B should not
     be too different.
     """
     phonemes = {}
-    with open(phoible, encoding="utf-8") as file:
-        rows = reader(file)
-        next(rows)
-        for row in rows:
-            phoneme = row[6]
-            phonemes[phoneme] = tuple(row[11:])
+    for row in phoible_rows:
+        phoneme = row[6]
+        phonemes[phoneme] = tuple(row[11:])
 
     for phoneme, features in phonemes.items():
         if "|" not in phoneme:
@@ -87,52 +87,71 @@ def test_there_are_invalid_segments(
     assert not not_found
 
 
-def test_language_code_counts(phoible: Path) -> None:
+def test_language_codes(phoible_rows: list[Row]) -> None:
+    """Make some assertions about language codes in PHOIBLE.
+
+    Summary:
+    - PHOIBLE doesn't use special ISO639-3 language codes.
+    - PHOIBLE uses soem language codes reserved for local use (qaa-qtz).
+    """
+    found = set()
+    for row in phoible_rows:
+        glottocode = row[1]
+        iso639_3 = row[2]
+
+        assert glottocode != ""
+
+        # mis, mul, und and zxx are special language codes.
+        # See https://en.wikipedia.org/wiki/ISO_639-3#Special_codes.
+        assert iso639_3 not in ("", "mis", "mul", "und", "zxx")
+
+        if re.match("^q[a-t]", iso639_3):
+            found.add(iso639_3)
+
+    # Found some language codes reserved for local use.
+    assert found
+
+
+def test_language_code_counts(phoible_rows: list[Row]) -> None:
     """Make some assertions about language code counts in PHOIBLE."""
     missing_glottocode = set()
     missing_iso639_3 = set()
     missing_name = set()
 
-    with open(phoible, encoding="utf-8") as file:
-        rows = reader(file)
-        next(rows)
-        for row in rows:
-            glottocode = row[1]
-            iso639_3 = row[2]
-            name = row[3]
+    for row in phoible_rows:
+        glottocode = row[1]
+        iso639_3 = row[2]
+        name = row[3]
 
-            language = (glottocode, iso639_3, name)
+        language = (glottocode, iso639_3, name)
 
-            if glottocode in ("", "NA"):
-                missing_glottocode.add(language)
-            if iso639_3 in ("", "NA"):
-                missing_iso639_3.add(language)
-            if name in ("", "NA"):
-                missing_name.add(language)
+        if glottocode in ("", "NA"):
+            missing_glottocode.add(language)
+        if iso639_3 in ("", "NA"):
+            missing_iso639_3.add(language)
+        if name in ("", "NA"):
+            missing_name.add(language)
 
     assert not missing_name
     assert len(missing_glottocode) <= 2
     assert len(missing_iso639_3) <= 38
 
 
-def test_glottocodes_iso639_3_mapping(phoible: Path) -> None:
+def test_glottocodes_iso639_3_mapping(phoible_rows: list[Row]) -> None:
     """Each glottocode should map to only one ISO639-3 code."""
     glottocodes: dict[str, set[str]] = {}
 
-    with open(phoible, encoding="utf-8") as file:
-        rows = reader(file)
-        next(rows)
-        for row in rows:
-            glottocode = row[1]
-            iso639_3 = row[2]
+    for row in phoible_rows:
+        glottocode = row[1]
+        iso639_3 = row[2]
 
-            # Skip languages that don't have a Glottocode or a ISO639-3 code.
-            if glottocode in ("", "NA"):
-                continue
-            if iso639_3 in ("", "NA"):
-                continue
+        # Skip languages that don't have a Glottocode or a ISO639-3 code.
+        if glottocode in ("", "NA"):
+            continue
+        if iso639_3 in ("", "NA"):
+            continue
 
-            glottocodes.setdefault(glottocode, set()).add(iso639_3)
+        glottocodes.setdefault(glottocode, set()).add(iso639_3)
 
     for values in glottocodes.values():
         assert len(values) == 1
