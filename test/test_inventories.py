@@ -26,6 +26,12 @@ def test_get_phonological_inventories() -> None:
     # get included in the combined inventory.
 
 
+def test_get_phonological_inventories_na() -> None:
+    """`get_phonological_inventories` should include an NA inventory."""
+    inventories = get_phonological_inventories()
+    assert "NA" in inventories
+
+
 def test_get_sounds() -> None:
     """`get_sounds(language)` should be the same as the keys in the sound
     inventory of the language.
