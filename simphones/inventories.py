@@ -3,6 +3,7 @@
 # See https://www.gnu.org/licenses/gpl-3.0.en.html
 """Extract per-language phonological inventories from the PHOIBLE dataset."""
 
+from argparse import ArgumentParser, Namespace
 from csv import reader
 from itertools import permutations
 from pathlib import Path
@@ -123,14 +124,30 @@ def get_sounds(language: LanguageCode = "*") -> set[Phone]:
     return set(inventory.keys())
 
 
-def main() -> None:
+def parse_args() -> Namespace:
+    """Parse command-line arguments."""
+    parser = ArgumentParser(description=__doc__)
+    return parser.parse_args()
+
+
+def main(_: Namespace) -> None:
     """Script entrypoint."""
-    for phone in get_sounds():
-        print(phone)
+    inventories = get_phonological_inventories()
+    for code, inventory in inventories.items():
+        if code == "*":
+            continue
+
+        assert "," not in code
+
+        line = code
+        for sound in sorted(inventory.keys()):
+            assert "," not in sound
+            line += f",{sound}"
+        print(line)
 
 
 if __name__ == "__main__":
-    main()
+    main(parse_args())
 
 
 __all__ = ["get_phonological_inventories", "get_sounds"]
