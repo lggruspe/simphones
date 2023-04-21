@@ -85,3 +85,54 @@ def test_there_are_invalid_segments(
         not_found.difference_update(found)
 
     assert not not_found
+
+
+def test_language_code_counts(phoible: Path) -> None:
+    """Make some assertions about language code counts in PHOIBLE."""
+    missing_glottocode = set()
+    missing_iso639_3 = set()
+    missing_name = set()
+
+    with open(phoible, encoding="utf-8") as file:
+        rows = reader(file)
+        next(rows)
+        for row in rows:
+            glottocode = row[1]
+            iso639_3 = row[2]
+            name = row[3]
+
+            language = (glottocode, iso639_3, name)
+
+            if glottocode in ("", "NA"):
+                missing_glottocode.add(language)
+            if iso639_3 in ("", "NA"):
+                missing_iso639_3.add(language)
+            if name in ("", "NA"):
+                missing_name.add(language)
+
+    assert not missing_name
+    assert len(missing_glottocode) <= 2
+    assert len(missing_iso639_3) <= 38
+
+
+def test_glottocodes_iso639_3_mapping(phoible: Path) -> None:
+    """Each glottocode should map to only one ISO639-3 code."""
+    glottocodes: dict[str, set[str]] = {}
+
+    with open(phoible, encoding="utf-8") as file:
+        rows = reader(file)
+        next(rows)
+        for row in rows:
+            glottocode = row[1]
+            iso639_3 = row[2]
+
+            # Skip languages that don't have a Glottocode or a ISO639-3 code.
+            if glottocode in ("", "NA"):
+                continue
+            if iso639_3 in ("", "NA"):
+                continue
+
+            glottocodes.setdefault(glottocode, set()).add(iso639_3)
+
+    for values in glottocodes.values():
+        assert len(values) == 1
