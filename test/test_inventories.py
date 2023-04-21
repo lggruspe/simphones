@@ -4,6 +4,7 @@
 """Test simphones.inventories."""
 from simphones.inventories import (
     get_phonological_inventories,
+    get_sounds,
     parse_allophones,
 )
 
@@ -23,6 +24,18 @@ def test_get_phonological_inventories() -> None:
     # The reverse isn't necessarily true, because some languages in the PHOIBLE
     # dataset don't have a language code. The sounds of these languages still
     # get included in the combined inventory.
+
+
+def test_get_sounds() -> None:
+    """`get_sounds(language)` should be the same as the keys in the sound
+    inventory of the language.
+    """
+    # Test on a few languages, because it's slow.
+    languages = ["eng", "tgl"]
+    inventories = get_phonological_inventories()
+    for language in languages:
+        sounds = set(inventories[language])
+        assert sounds == get_sounds(language)
 
 
 def test_parse_allophones_with_pipe() -> None:
