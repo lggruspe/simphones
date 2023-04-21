@@ -3,6 +3,7 @@
 # See https://www.gnu.org/licenses/gpl-3.0.en.html
 """Test simphones.inventories."""
 from argparse import Namespace
+import re
 
 import pytest
 
@@ -32,9 +33,28 @@ def test_get_phonological_inventories() -> None:
 
 
 def test_get_phonological_inventories_na() -> None:
-    """`get_phonological_inventories` should include an NA inventory."""
+    """`get_phonological_inventories` shouldn't contain an NA inventory.
+
+    If the Glottocode of a language isn't available, it should use the name of
+    the language as key instead.
+    """
     inventories = get_phonological_inventories()
-    assert "NA" in inventories
+    assert "NA" not in inventories
+
+    assert "Djindewal" in inventories
+    assert "ModernAramaic" in inventories
+
+
+def test_get_phonological_inventories_glottocode_keys() -> None:
+    """The keys of the return value of `get_phonological_inventories` should be
+    Glottocodes, except for special keys.
+    """
+    special = {"*", "Djindewal", "ModernAramaic"}
+    inventories = get_phonological_inventories()
+    for glottocode in inventories:
+        is_glottocode = re.match("[a-z]{4}[0-9]{4}", glottocode)
+        if not is_glottocode:
+            assert glottocode in special
 
 
 def test_get_sounds() -> None:
@@ -42,7 +62,7 @@ def test_get_sounds() -> None:
     inventory of the language.
     """
     # Test on a few languages, because it's slow.
-    languages = ["eng", "tgl"]
+    languages = ["*", "stan1293", "taga1270"]
     inventories = get_phonological_inventories()
     for language in languages:
         sounds = set(inventories[language])

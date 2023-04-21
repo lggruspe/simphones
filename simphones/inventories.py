@@ -39,8 +39,12 @@ def substitute(phone: Phone) -> Phone:
 def get_phonological_inventories() -> InventoryDataset:
     """Get phonological inventories from the PHOIBLE dataset.
 
-    The keys of the returned dictionary are ISO 639-3 language codes or "*".
-    The "*" inventory combines the inventories of every language.
+    The result is a dictionary with Glottocodes as keys.
+    In addition, there are three special keys:
+
+    - "*" (combination of the inventories of every language)
+    - "Djindewal" (doesn't have a Glottocode)
+    - "ModernAramaic" (doesn't have a Glottocode)
     """
     phoible = Path(__file__).with_name("phoible.csv")
 
@@ -50,7 +54,7 @@ def get_phonological_inventories() -> InventoryDataset:
         next(rows)  # Drop the header.
 
         for row in rows:
-            code = row[2]
+            glottocode = row[1]
             raw_phoneme = substitute(row[6])
             allophones = parse_allophones(row[7])
 
@@ -65,8 +69,12 @@ def get_phonological_inventories() -> InventoryDataset:
             update_inventory(combined_inventory, phoneme, allophones)
 
             # Update language inventory.
-            # NA inventories are not skipped, but they are mushed together into
-            # one.
+            # If the language has no Glottocode, use the language name as a key
+            # instead.
+            code = glottocode
+            if code == "NA":
+                language_name = row[3]
+                code = language_name.replace(" ", "")
             language_inventory = inventories.setdefault(code, {})
             update_inventory(language_inventory, phoneme, allophones)
     return inventories
@@ -117,8 +125,10 @@ def update_inventory(
 def get_sounds(language: LanguageCode = "*") -> set[Phone]:
     """Return set of sounds in the given language.
 
-    If no ISO639-3 language code is given, the return value is the combined
-    inventories of all languages in the PHOIBLE data.
+    If no Glottocode is given, the return value is the combined inventories of
+    all languages in the PHOIBLE data.
+
+    Simply returns an empty set if the language code is not in PHOIBLE.
     """
     inventories = get_phonological_inventories()
     inventory = inventories.get(language, {})
