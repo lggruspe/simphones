@@ -121,3 +121,12 @@ def test_main(capsys: pytest.CaptureFixture[str]) -> None:
     for line in stdout.splitlines():
         row = line.split(",")
         assert len(row) == 2
+
+
+def test_symmetric_allophones() -> None:
+    """If A is an allophone of B, then B is an allophone of A."""
+    inventories = get_phonological_inventories()
+    for inventory in inventories.values():
+        for phoneme, allophones in inventory.items():
+            for allophone in allophones:
+                assert phoneme in inventory[allophone]
