@@ -7,4 +7,4 @@ check:
 
 .PHONY:	test
 test:
-	pytest simphones test -v
+	pytest simphones test -v --cov=simphones
