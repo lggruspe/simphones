@@ -15,6 +15,16 @@ def parse_args() -> Namespace:
     """Parse command-line arguments."""
     parser = ArgumentParser(prog="simphones", description=__doc__)
     parser.add_argument(
+        "-n",
+        dest="precision",
+        default=None,
+        type=int,
+        help=(
+            "number of decimal digits of precision to round distances to"
+            " (default: don't round)"
+        ),
+    )
+    parser.add_argument(
         "output",
         type=Path,
         help="output CSV file",
@@ -26,7 +36,7 @@ def main(args: Namespace) -> None:
     """Script entrypoint."""
     inventories = get_phonological_inventories()
     distances = compute_distances(inventories)
-    save_as_csv(args.output, distances)
+    save_as_csv(args.output, distances, args.precision)
 
 
 if __name__ == "__main__":
