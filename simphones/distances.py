@@ -2,7 +2,8 @@
 # Licensed under GNU GPLv3 or later
 # See https://www.gnu.org/licenses/gpl-3.0.en.html
 # pylint: disable=invalid-name
-"""Compute phone similarity from PHOIBLE allophone data."""
+"""Compute distances between sounds."""
+
 
 from collections import Counter
 import typing as t
@@ -13,11 +14,11 @@ from simphones.inventories import InventoryDataset, Phone
 
 
 Cooccurrence: t.TypeAlias = tuple[Phone, Phone]
-SimilarityData: t.TypeAlias = dict[Cooccurrence, float]
+DistanceData: t.TypeAlias = dict[Cooccurrence, float]
 
 
-def compute_similarity(inventories: InventoryDataset) -> SimilarityData:
-    """Compute similarity for every pair of sounds."""
+def compute_distances(inventories: InventoryDataset) -> DistanceData:
+    """Compute distance for every pair of sounds."""
     graph = create_allophone_graph(inventories)
 
     assert not [node for node, degree in graph.degree() if degree == 0]
@@ -34,12 +35,12 @@ def compute_similarity(inventories: InventoryDataset) -> SimilarityData:
             backup.add((node, neighbor, weight))
     graph.remove_nodes_from(node for node, _, _ in backup)
 
-    # Partially compute similarity using the allophone graph.
-    similarity = maximize_products(graph)
+    # Compute shortest path lengths between sounds.
+    distances = shortest_path_lengths(graph)
 
-    # Compute similarity for removed edges.
+    # Compute distances for removed edges.
     for node, neighbor, weight in backup:
-        similarity[unordered(node, neighbor)] = weight
+        distances[unordered(node, neighbor)] = weight
 
     # Iterate through paths node ~> neighbor ~> target.
     # The path from node ~> neighbor is already known, because they're just
@@ -50,75 +51,21 @@ def compute_similarity(inventories: InventoryDataset) -> SimilarityData:
                 continue
 
             path = unordered(neighbor, target)
-            if path not in similarity:
+            if path not in distances:
                 continue
-            probability = similarity[path]
+            distance = distances[path]
 
             path = unordered(node, target)
-            similarity[path] = weight * probability
-    return similarity
-
-
-def maximize_products(graph: nx.Graph) -> SimilarityData:
-    """Compute similarity between pairs of nodes.
-
-    Similarity is expressed as a probability.
-    Assumption: P(A ~ C) = max P(A ~ B) * P(B ~ C).
-    Allophone probabilities are used as a proxy for similarity.
-
-    Since similarity is symmetric, only one entry is created for each pair of
-    phones.
-    """
-    # Initialize probabilities with allophone probabilities.
-    probabilities = {}
-    for (source, target), data in graph.edges.items():
-        probabilities[unordered(source, target)] = data["weight"]
-
-    # Based on Floyd-Warshall algorithm, but finds max probability products
-    # instead of minimum distances.
-    # Iterates through paths x ~> y ~> z.
-    for x in graph.nodes:
-        for y in graph.nodes:
-            if x == y:
-                continue
-
-            key_xy = unordered(x, y)
-            if key_xy not in probabilities:
-                # There's no path from x to y.
-                continue
-
-            probability_xy = probabilities[key_xy]
-
-            for z in graph.nodes:
-                if z in (x, y):
-                    continue
-
-                key_yz = unordered(y, z)
-                if key_yz not in probabilities:
-                    # There's no path from y to z.
-                    continue
-                probability_yz = probabilities[key_yz]
-
-                key_xz = unordered(x, z)
-                if key_xz not in probabilities:
-                    # Add a path x ~> y ~> z.
-                    probabilities[key_xz] = probability_xy * probability_yz
-                    continue
-
-                # There's a path x ~> y ~> z.
-                probabilities[key_xz] = max(
-                    probabilities[key_xz],
-                    probability_xy * probability_yz,
-                )
-    return probabilities
+            distances[path] = weight + distance
+    return distances
 
 
 def create_allophone_graph(inventories: InventoryDataset) -> nx.Graph:
     """Create a weighted graph of allophones.
 
     Nodes represent phones. Two nodes are connected if they are allophones in
-    some language. The edge weight equals the probability that the two phones
-    are allophones.
+    some language. The edge weight equals the "distance" between the two
+    phones.
     """
     cooccurrences = count_cooccurrences(inventories)
     allophones = count_allophones(inventories)
@@ -134,10 +81,7 @@ def create_allophone_graph(inventories: InventoryDataset) -> nx.Graph:
         assert count_a == cooccurrences[(a, a)]
         assert count_b == cooccurrences[(b, b)]
 
-        # The probability is computed over languages that contain `a` or `b`.
-        # It should be equal to 1 when a == b.
-        weight = count/(count_a + count_b - cooccurrences[(a, b)])
-
+        weight = 1 - count/(count_a + count_b - cooccurrences[(a, b)])
         assert 0 <= weight <= 1
         graph.add_edge(a, b, weight=weight)
     return graph
@@ -189,4 +133,22 @@ def count_allophones(inventories: InventoryDataset) -> Counter[Cooccurrence]:
     return counter
 
 
-__all__ = ["compute_similarity"]
+def shortest_path_lengths(graph: nx.Graph) -> dict[Cooccurrence, float]:
+    """Compute length of shortest path between every pair of nodes.
+
+    The return value is a dictionary keyed by tuples of graph nodes.
+    Since the graph is undirected, only one entry is included for each pair of
+    nodes.
+    Assume `phone1 <= phone2` if `(phone1, phone2)` is in the dictionary.
+    """
+    result = {}
+    distances = nx.all_pairs_dijkstra_path_length(graph)
+
+    for source, targets in distances:
+        for target, distance in targets.items():
+            if source <= target:
+                result[(source, target)] = distance
+    return result
+
+
+__all__ = ["compute_distances"]

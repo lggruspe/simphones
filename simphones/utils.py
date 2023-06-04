@@ -6,28 +6,28 @@
 from csv import reader, writer
 from pathlib import Path
 
+from simphones.distances import DistanceData, unordered
 from simphones.normalize import normalize_ipa
-from simphones.similarity import SimilarityData, unordered
 
 
 class MalformedDataset(Exception):
-    """Raised when reading a file that doesn't contain similarity data."""
+    """Raised when reading a file that doesn't contain distance data."""
 
 
-def save_as_csv(path: Path, similarity: SimilarityData) -> None:
-    """Save similarity data as a CSV file."""
+def save_as_csv(path: Path, distances: DistanceData) -> None:
+    """Save distance data as a CSV file."""
     with open(path, "w", encoding="utf-8") as file:
         csv_file = writer(file)
-        for (phone1, phone2), score in similarity.items():
-            csv_file.writerow((phone1, phone2, score))
+        for (phone1, phone2), distance in distances.items():
+            csv_file.writerow((phone1, phone2, distance))
 
 
-def read_from_csv(path: Path) -> SimilarityData:
-    """Read similarity data from CSV file.
+def read_from_csv(path: Path) -> DistanceData:
+    """Read distance data from CSV file.
 
     May raise `MalformedDataset`.
     """
-    similarity = {}
+    distances = {}
     with open(path, encoding="utf-8") as file:
         rows = reader(file)
         for row in rows:
@@ -36,13 +36,13 @@ def read_from_csv(path: Path) -> SimilarityData:
 
             phone1, phone2, token = row
             try:
-                score = float(token)
+                distance = float(token)
             except ValueError as exc:
                 raise MalformedDataset from exc
 
             pair = unordered(normalize_ipa(phone1), normalize_ipa(phone2))
-            similarity[pair] = score
-    return similarity
+            distances[pair] = distance
+    return distances
 
 
 __all__ = ["read_from_csv", "save_as_csv"]
