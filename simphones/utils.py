@@ -62,7 +62,7 @@ def save_as_json(
 
         data[f"{phone1} {phone2}"] = rounded
 
-    text = dumps({"distances": data})
+    text = dumps({"distances": data}, ensure_ascii=False)
     path.write_text(text, encoding="utf-8")
 
 
