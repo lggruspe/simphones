@@ -7,34 +7,35 @@ from csv import reader, writer
 from json import dumps
 from pathlib import Path
 
-from simphones.distances import DistanceData, unordered
+from simphones.distances import unordered
 from simphones.normalize import normalize_ipa
+from simphones.similarity import SimilarityData
 
 
 class MalformedDataset(Exception):
-    """Raised when reading a file that doesn't contain distance data."""
+    """Raised when reading a file that doesn't contain similarity data."""
 
 
 def save_as_csv(
     path: Path,
-    distances: DistanceData,
+    similarity: SimilarityData,
     ndigits: int | None = None,
 ) -> None:
-    """Save distance data as a CSV file.
+    """Save similarity data as a CSV file.
 
-    `ndigits` is the precision to round distances to.
+    `ndigits` is the precision to round similarity scores to.
     Set to `None` to disable rounding.
     """
     with open(path, "w", encoding="utf-8") as file:
         csv_file = writer(file)
-        for (phone1, phone2), distance in distances.items():
+        for (phone1, phone2), score in similarity.items():
             if phone1 == phone2:
                 continue
             assert phone1 < phone2
 
-            rounded = distance
+            rounded = score
             if ndigits is not None:
-                rounded = round(distance, ndigits=ndigits)
+                rounded = round(score, ndigits=ndigits)
 
             row = (phone1, phone2, rounded)
             csv_file.writerow(row)
@@ -42,36 +43,36 @@ def save_as_csv(
 
 def save_as_json(
     path: Path,
-    distances: DistanceData,
+    similarity: SimilarityData,
     ndigits: int | None = None,
 ) -> None:
-    """Save distance data as a JSON file.
+    """Save similarity data as a JSON file.
 
-    `ndigits` is the precision to round distances to.
+    `ndigits` is the precision to round similarity to.
     Set to `None` to disable rounding.
     """
     data = {}
-    for (phone1, phone2), distance in distances.items():
+    for (phone1, phone2), score in similarity.items():
         if phone1 == phone2:
             continue
         assert phone1 < phone2
 
-        rounded = distance
+        rounded = score
         if ndigits is not None:
-            rounded = round(distance, ndigits=ndigits)
+            rounded = round(score, ndigits=ndigits)
 
         data[f"{phone1} {phone2}"] = rounded
 
-    text = dumps({"distances": data}, ensure_ascii=False)
+    text = dumps({"similarity": data}, ensure_ascii=False)
     path.write_text(text, encoding="utf-8")
 
 
-def read_from_csv(path: Path) -> DistanceData:
-    """Read distance data from CSV file.
+def read_from_csv(path: Path) -> SimilarityData:
+    """Read similarity data from CSV file.
 
     May raise `MalformedDataset`.
     """
-    distances = {}
+    similarity = {}
     with open(path, encoding="utf-8") as file:
         rows = reader(file)
         for row in rows:
@@ -80,13 +81,13 @@ def read_from_csv(path: Path) -> DistanceData:
 
             phone1, phone2, token = row
             try:
-                distance = float(token)
+                score = float(token)
             except ValueError as exc:
                 raise MalformedDataset from exc
 
             pair = unordered(normalize_ipa(phone1), normalize_ipa(phone2))
-            distances[pair] = distance
-    return distances
+            similarity[pair] = score
+    return similarity
 
 
 __all__ = ["read_from_csv", "save_as_csv", "save_as_json"]
