@@ -4,6 +4,7 @@
 """Serialization tools."""
 
 from csv import reader, writer
+from json import dumps
 from pathlib import Path
 
 from simphones.distances import DistanceData, unordered
@@ -39,6 +40,32 @@ def save_as_csv(
             csv_file.writerow(row)
 
 
+def save_as_json(
+    path: Path,
+    distances: DistanceData,
+    ndigits: int | None = None,
+) -> None:
+    """Save distance data as a JSON file.
+
+    `ndigits` is the precision to round distances to.
+    Set to `None` to disable rounding.
+    """
+    data = {}
+    for (phone1, phone2), distance in distances.items():
+        if phone1 == phone2:
+            continue
+        assert phone1 < phone2
+
+        rounded = distance
+        if ndigits is not None:
+            rounded = round(distance, ndigits=ndigits)
+
+        data[f"{phone1} {phone2}"] = rounded
+
+    text = dumps({"distances": data})
+    path.write_text(text, encoding="utf-8")
+
+
 def read_from_csv(path: Path) -> DistanceData:
     """Read distance data from CSV file.
 
@@ -62,4 +89,4 @@ def read_from_csv(path: Path) -> DistanceData:
     return distances
 
 
-__all__ = ["read_from_csv", "save_as_csv"]
+__all__ = ["read_from_csv", "save_as_csv", "save_as_json"]

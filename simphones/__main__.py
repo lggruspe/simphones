@@ -8,12 +8,20 @@ from pathlib import Path
 
 from simphones.distances import compute_distances
 from simphones.inventories import get_phonological_inventories
-from simphones.utils import save_as_csv
+from simphones.utils import save_as_csv, save_as_json
 
 
 def parse_args() -> Namespace:
     """Parse command-line arguments."""
     parser = ArgumentParser(prog="simphones", description=__doc__)
+    parser.add_argument(
+        "-f",
+        dest="format",
+        default="csv",
+        choices=["csv", "json"],
+        type=str,
+        help="output format (default: csv)",
+    )
     parser.add_argument(
         "-n",
         dest="precision",
@@ -36,7 +44,11 @@ def main(args: Namespace) -> None:
     """Script entrypoint."""
     inventories = get_phonological_inventories()
     distances = compute_distances(inventories)
-    save_as_csv(args.output, distances, args.precision)
+
+    if args.format == "csv":
+        save_as_csv(args.output, distances, args.precision)
+    elif args.format == "json":
+        save_as_json(args.output, distances, args.precision)
 
 
 if __name__ == "__main__":
