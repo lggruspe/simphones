@@ -17,7 +17,7 @@ def compute_similarity(distances: DistanceData) -> SimilarityData:
 
     assert max_distance > 0
     return {
-        pair: distance/max_distance for pair, distance in distances.items()
+        pair: 1 - distance/max_distance for pair, distance in distances.items()
     }
 
 
