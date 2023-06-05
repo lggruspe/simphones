@@ -10,26 +10,26 @@ To save space, not every pair of phones has an entry in the dataset.
 - `0 <= similarity (A, B) <= 1` (higher score means more similar)
 - `similarity(A, B) = similarity(B, A)`
 - `similarity(A, A) = 1`
-- If neither `(A, B)` nor `(B, A)` appear in the dataset, then `similarity(A, B) = 0`.
+- If neither `(A, B)` nor `(B, A)` appear in the dataset, and if `A != B`, then `similarity(A, B) = 0`.
 
 Here's a small sample of the data.
 
 ```csv
-fː,ʊa,1.6201569349461534e-11
-fː,ʊə̯,5.932486442509328e-10
-fː,ʊɛ,1.654628359093944e-11
-fː,ʊi,5.7253518261578165e-12
-fː,ʊɨ,4.755354402743387e-10
-fː,ʊu,3.046657464491683e-09
-fː,vː,3.866146283376924e-06
-fː,vˑ,1.195342842330567e-06
-fː,v̥,0.0001350560482600279
-fː,v̩,0.0001378993334865548
-fː,v̼,0.00014011162225906638
-fː,v,0.0003932677951267566
-fː,v͈,2.458656160009343e-05
-fː,ṽ,3.019403441365072e-06
-fː,v̠,3.0454327813768398e-06
+n̪,ʊɛ,0.43121545775887227
+n̪,ʊa,0.43111336275832324
+n̪,ʁ̥ʷː,0.38899594774891666
+n̪,ʁʷː,0.38899594774891666
+n̪,sʼː,0.3427814506713922
+t,t̪,0.8946818014216882
+t,tʰ,0.8915659055270435
+t,t̚,0.8900445610114259
+t,tʲ,0.8871978153386992
+t,tʷ,0.8860247688311866
+t,tː,0.8859568472356656
+t,ɾ,0.8858339230223978
+t,t̠ʃ,0.885766574261883
+t,ts,0.8856616994842816
+t,ð,0.8854152257900325
 ```
 
 ## Generating the data
@@ -37,21 +37,22 @@ fː,v̠,3.0454327813768398e-06
 ```bash
 # Clone the repo.
 git clone https://github.com/lggruspe/simphones
+cd simphones
 
 # Install some requirements.
 python -m venv env
 . env/bin/activate
-pip install networkx
+pip install -r requirements.txt
 
 # Generate the data (this can take a while).
-python -m simphones <output file>
+python -m simphones <path to output CSV file>
 ```
 
 ## Licenses
 
 Copyright 2023 Levi Gruspe
 
-The scripts in this repository are licensed under [GPLv3 or later](./LICENSES/GNU_GPLv3.txt).
+The scripts in the repository are licensed under [GPLv3 or later](./LICENSES/GNU_GPLv3.txt).
 
 `simphones.csv`, which is a derivative work of [PHOIBLE 2.0](https://phoible.org/), is released under a [Creative Commons Attribution-ShareAlike 3.0 Unported License](./LICENSES/CC_BY-SA_3.0.txt).
 
