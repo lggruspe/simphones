@@ -1,8 +1,8 @@
 .PHONY:	check
 check:
-	mypy simphones test --strict
-	flake8 simphones test
-	pylint simphones test
+	mypy simphones test tools --strict
+	flake8 simphones test tools
+	pylint simphones test tools
 	pytest simphones test -x
 
 .PHONY:	test
